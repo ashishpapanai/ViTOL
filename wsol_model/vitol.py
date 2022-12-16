@@ -4,7 +4,7 @@ from wsol_model.ViT import vit_base_patch16_224, vit_large_patch16_224
 from wsol_model.ViT import deit_base_patch16_224, deit_small_patch16_224
 
 def vitol(architecture_type=None, pretrained=False, pretrained_path=None,**kwargs):
-    print("Kwargs: ", kwargs)
+    #print("Kwargs: ", kwargs)
     vit_type = kwargs['vit_type']
 
     if vit_type == 'vit':

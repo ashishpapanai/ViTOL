@@ -189,7 +189,6 @@ class WSOLImageLabelDataset(Dataset):
 def get_data_loader(data_roots, metadata_root, batch_size, workers,
                     resize_size, crop_size, proxy_training_set,
                     num_val_sample_per_class=0, split_arg=False):
-
     dataset_transforms = dict(
         train=transforms.Compose([
             transforms.Resize((resize_size, resize_size)),
@@ -225,5 +224,6 @@ def get_data_loader(data_roots, metadata_root, batch_size, workers,
             num_workers=workers)
         for split in _SPLITS
     }
+    
 
     return loaders

@@ -63,6 +63,10 @@ class ViTOLInference():
         self.performance_meters = self._set_performance_meters()
         
         self.model = self._set_model()
+        print(self.args.num_val_sample_per_class)
+
+        #print(self.args.data_paths)
+
         self.loaders = get_data_loader(
             data_roots=self.args.data_paths,
             metadata_root=self.args.metadata_root,
@@ -73,6 +77,7 @@ class ViTOLInference():
             proxy_training_set=self.args.proxy_training_set,
             num_val_sample_per_class=self.args.num_val_sample_per_class,
         )
+        #exit()
 
     def _set_performance_meters(self):
         self._EVAL_METRICS += ['localization_IOU_{}'.format(threshold)

@@ -135,11 +135,43 @@ class CAMComputer(object):
                 cam_normalized = normalize_scoremap(cam_resized)
                 
                 if self.split in split_list:
-                    cam_path = ospj(self.log_folder, 'scoremaps', image_id)
+                    #cam_path = ospj(self.log_folder, 'scoremaps', image_id)
+                    cam_path = ospj(('./visualisations/'+image_id))
                     if not os.path.exists(ospd(cam_path)):
                         os.makedirs(ospd(cam_path))
-                    np.save(ospj(cam_path), cam_normalized)
-                    plt.imsave(ospj(cam_path), cam_normalized)
+                    #np.save(ospj(cam_path), cam_normalized)
+                    original_img = cv2.imread(ospj('./dataset/ILSVRC/', image_id))
+                    # check if image is loaded correctly
+                    if original_img is None:
+                        print('Image not found')
+                        continue
+                    
+                    original_img = cv2.resize(original_img, (224, 224))
+                    cam = cv2.resize(cam, (original_img.shape[1], original_img.shape[0]))
+
+                    fig, ax = plt.subplots(1, 4, figsize=(10, 5))
+                    fig.suptitle('ViTOL: Visualisations on DeiT Base', fontsize=16)
+                    # conver original image to RGB
+                    original_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2RGB)
+                    ax[0].imshow(original_img)
+                    ax[0].set_title('Original Image')
+                    ax[1].imshow(original_img)
+                    ax[1].imshow(cam, cmap='jet', alpha=0.5)
+                    ax[1].set_title('Image with CAM')
+                    ax[2].imshow(cam, cmap='jet')
+                    ax[2].set_title('CAM')
+                    cam = cv2.resize(cam, (original_img.shape[1], original_img.shape[0]))
+                    cam = np.expand_dims(cam, axis=2)
+                    cam = np.concatenate((cam, cam, cam), axis=2)
+                    cam = cam / np.max(cam)
+                    cam = cam * original_img
+                    ax[3].imshow(cam.astype(np.uint8))
+                    ax[3].set_title('CAM * Image')
+                    for a in ax:
+                        a.axis('off')
+                    fig.savefig(ospj(cam_path))
+
+                    print('Saved image with CAM to {}'.format(ospj(cam_path)))
                 # self.evaluator.accumulate(cam_normalized, image_id)
 
                 classification_flag = (int(pred[i]) == int(targets[i]))
