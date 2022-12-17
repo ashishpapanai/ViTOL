@@ -6,3 +6,4 @@ metadata/*
 pretrained_weights/*
 visualisations/*
 outputs/*
+visuals/*
