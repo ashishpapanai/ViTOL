@@ -15,6 +15,7 @@ def compute_rollout_attention(all_layer_matrices, start_layer=0):
     joint_attention = matrices_aug[start_layer]
     for i in range(start_layer+1, len(matrices_aug)):
         joint_attention = matrices_aug[i].bmm(joint_attention)
+    #print(joint_attention.shape)
     return joint_attention
 
 class LRP:
@@ -46,7 +47,7 @@ class Baselines:
     def __init__(self, model):
         self.model = model
         self.model.eval()
-
+    
     def generate_cam_attn(self, input, index=None):
         output = self.model(input.cuda(), register_hook=True)
         if index == None:
@@ -68,6 +69,7 @@ class Baselines:
         cam = (cam * grad).mean(0).clamp(min=0)
         cam = (cam - cam.min()) / (cam.max() - cam.min())
 
+        #print(cam.shape)
         return cam
         #################### attn
 
@@ -75,10 +77,12 @@ class Baselines:
         self.model(input)
         blocks = self.model.blocks
         all_layer_attentions = []
+        all_head_attentions = []
         for blk in blocks:
             attn_heads = blk.attn.get_attn()
             avg_heads = (attn_heads.sum(dim=1) / attn_heads.shape[1]).detach()
             all_layer_attentions.append(avg_heads)
+            all_head_attentions.append(attn_heads.detach())
         rollout = compute_rollout_attention(all_layer_attentions, start_layer=start_layer)
         return rollout[:,0, 1:]
 
@@ -98,6 +102,7 @@ class Baselines:
 
         blocks = self.model.blocks
         all_layer_attentions = []
+        all_head_attentions = []
 
         # cams, grads = [], []
 
@@ -111,11 +116,21 @@ class Baselines:
             # grads.append(grad)
 
             cam = grad * cam
+            cam2 = cam
+            all_head_attentions.append(cam2.detach())
             cam = cam.clamp(min=0).mean(dim=0)
             all_layer_attentions.append(cam.unsqueeze(0))
 
-        rollout = compute_rollout_attention(all_layer_attentions, start_layer=start_layer)
+        # print(len(all_layer_attentions)) 
+        # print(len(all_head_attentions))        
+        # print(all_layer_attentions[0].shape)
+        # print(all_head_attentions[0].shape)
+        rollout = compute_rollout_attention(all_layer_attentions, start_layer=start_layer)  
+        # all_layer_rolled = []
+        # for i in (0, 12):
+        #     rolled = compute_rollout_attention(all_layer_attentions, start_layer=i)
+        #     all_layer_rolled.append(rolled)
 
         # torch.save({'cams': cams, 'grads':grads, 'attention_maps': all_layer_attentions, 'final_map': rollout}, 'grad_rollout_maps.pt')
         # import pdb; pdb.set_trace()
-        return rollout[:,0, 1:]
+        return rollout[:,0, 1:], all_head_attentions, all_layer_attentions

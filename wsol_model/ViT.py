@@ -140,14 +140,14 @@ class Attention(nn.Module):
         b, n, _, h = *x.shape, self.num_heads
         qkv = self.qkv(x)
         q, k, v = rearrange(qkv, 'b n (qkv h d) -> qkv b h n d', qkv=3, h=h)
-
+        attn_head = []
         self.save_v(v)
 
         dots = self.matmul1([q, k]) * self.scale
 
         attn = self.softmax(dots)
         attn = self.attn_drop(attn)
-
+        
         self.save_attn(attn)
         attn.register_hook(self.save_attn_gradients)
 
@@ -157,6 +157,7 @@ class Attention(nn.Module):
         out = self.proj(out)
         out = self.proj_drop(out)
         return out
+    
 
     def relprop(self, cam, **kwargs):
         cam = self.proj_drop.relprop(cam, **kwargs)
