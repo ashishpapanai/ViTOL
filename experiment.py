@@ -131,7 +131,9 @@ org_img = Image.open(img_path).convert('RGB')
 org_img = org_img.resize((224, 224))
 
 fig, axs = plt.subplots(12, 27)
-fig.subplots_adjust(hspace=0, wspace=0)
+#fig.subplots_adjust(hspace=0, wspace=0)
+# add a small space between the subplots
+fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
 for ax in fig.get_axes():
     ax.label_outer()
     ax.tick_params(labelsize=1)
@@ -146,10 +148,10 @@ axs[0, 1].set_title('Layer', fontsize=2)
 axs[0, 2].set_title('Lyr Prp', fontsize=2)
 
 
-for i in range(12):
+for i in range(0, 24, 2):
     # write head and head number alternatively
     axs[0, i+3].set_title('Head {}'.format(i), fontsize=2)
-    axs[0, i+15].set_title('Head_Raw {}'.format(i), fontsize=1.5)
+    axs[0, i+4].set_title('Head_Raw {}'.format(i), fontsize=1.5)
     
 
 for i in range(12):
@@ -165,19 +167,35 @@ for i in range(12):
     layer_prop_cpy = np.repeat(layer_prop_cpy, 16, axis=1)
     axs[i, 2].imshow(layer_prop_cpy, cmap='jet', alpha=0.5)
     axs[i, 2].axis('off')
-    for j in range(12):
+    # for j in range(12):
+    #     axs[i, j+3].imshow(org_img)
+    #     head_cpy = np.repeat(heads[i*12+j], 16, axis=0)
+    #     head_cpy = np.repeat(head_cpy, 16, axis=1)
+    #     axs[i, j+3].imshow(head_cpy, cmap='jet', alpha=0.5)
+    #     axs[i, j+3].axis('off')
+
+    # for j in range(12):
+    #     axs[i, j+15].imshow(org_img)
+    #     head_raw_cpy = np.repeat(heads_raw[i*12+j], 16, axis=0)
+    #     head_raw_cpy = np.repeat(head_raw_cpy, 16, axis=1)
+    #     axs[i, j+15].imshow(head_raw_cpy, cmap='jet', alpha=0.5)
+    #     axs[i, j+15].axis('off')
+    # show heads and corresponding heads_raw alternatively
+    index = 0
+    for j in range(0, 24, 2):
         axs[i, j+3].imshow(org_img)
-        head_cpy = np.repeat(heads[i*12+j], 16, axis=0)
+        head_cpy = np.repeat(heads[index], 16, axis=0)
         head_cpy = np.repeat(head_cpy, 16, axis=1)
         axs[i, j+3].imshow(head_cpy, cmap='jet', alpha=0.5)
         axs[i, j+3].axis('off')
-
-    for j in range(12):
-        axs[i, j+15].imshow(org_img)
-        head_raw_cpy = np.repeat(heads_raw[i*12+j], 16, axis=0)
+        axs[i, j+4].imshow(org_img)
+        head_raw_cpy = np.repeat(heads_raw[index], 16, axis=0)
         head_raw_cpy = np.repeat(head_raw_cpy, 16, axis=1)
-        axs[i, j+15].imshow(head_raw_cpy, cmap='jet', alpha=0.5)
-        axs[i, j+15].axis('off')
+        axs[i, j+4].imshow(head_raw_cpy, cmap='jet', alpha=0.5)
+        axs[i, j+4].axis('off')
+        index += 1
+
+
 
 
 fig.savefig(os.path.join(log_folder, 'headwise_cam_mod.png'), dpi=1200, bbox_inches="tight")

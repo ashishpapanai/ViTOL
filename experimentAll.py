@@ -62,7 +62,7 @@ test=transforms.Compose([
         ])
 
 test_loader = loaders['test']
-log_folder = './visuals/'
+log_folder = './comprehensive/'
 for count, (images, labels, _) in enumerate(test_loader):
     image = images.cuda()
     target = labels.cuda()
@@ -113,12 +113,21 @@ for count, (images, labels, _) in enumerate(test_loader):
 
 
     org_img = images.squeeze(0).detach().cpu().numpy()
-    # convert to RGB    
     org_img = np.transpose(org_img, (1, 2, 0))
+    # convert to RGB using the same mean and std as the original image
+    org_img = org_img * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+    org_img = np.clip(org_img, 0, 1)
+    org_img = org_img * 255
+    org_img = org_img.astype(np.uint8)
+    #org_img = cv2.cvtColor(org_img, cv2.COLOR_BGR2RGB)
+    org_img = cv2.resize(org_img, (224, 224))
+    # color appear inverted make them 
+        
     #org_img = org_img.resize((224, 224))
 
-    fig, axs = plt.subplots(12, 27)
-    fig.subplots_adjust(hspace=0, wspace=0)
+    fig, axs = plt.subplots(12, 27, figsize=(27, 12))
+    #fig.subplots_adjust(left=0.01, right=0.99, top=0.99, bottom=0.01)
+    #fig.subplots_adjust(hspace=0.1)
     for ax in fig.get_axes():
         ax.label_outer()
         ax.tick_params(labelsize=1)
@@ -128,15 +137,14 @@ for count, (images, labels, _) in enumerate(test_loader):
         ax.set_yticks([])
         ax.set_aspect('equal')
 
-    axs[0, 0].set_title('Img', fontsize=2)
-    axs[0, 1].set_title('Layer', fontsize=2)
-    axs[0, 2].set_title('Lyr Prp', fontsize=2)
+    axs[0, 0].set_title('Img', fontsize=5)
+    axs[0, 1].set_title('Layer', fontsize=5)
+    axs[0, 2].set_title('Lyr Prp', fontsize=5)
 
 
-    for i in range(12):
-        # write head and head number alternatively
-        axs[0, i+3].set_title('Head {}'.format(i), fontsize=2)
-        axs[0, i+15].set_title('Head_Raw {}'.format(i), fontsize=1.5)
+    for i in range(0, 24, 2):
+        axs[0, i+3].set_title('Head {}'.format(i), fontsize=5)
+        axs[0, i+4].set_title('Head_Raw {}'.format(i), fontsize=5)
         
 
     for i in range(12):
@@ -152,19 +160,19 @@ for count, (images, labels, _) in enumerate(test_loader):
         layer_prop_cpy = np.repeat(layer_prop_cpy, 16, axis=1)
         axs[i, 2].imshow(layer_prop_cpy, cmap='jet', alpha=0.5)
         axs[i, 2].axis('off')
-        for j in range(12):
+        index = 0
+        for j in range(0, 24, 2):
             axs[i, j+3].imshow(org_img)
-            head_cpy = np.repeat(heads[i*12+j], 16, axis=0)
+            head_cpy = np.repeat(heads[index], 16, axis=0)
             head_cpy = np.repeat(head_cpy, 16, axis=1)
             axs[i, j+3].imshow(head_cpy, cmap='jet', alpha=0.5)
             axs[i, j+3].axis('off')
-
-        for j in range(12):
-            axs[i, j+15].imshow(org_img)
-            head_raw_cpy = np.repeat(heads_raw[i*12+j], 16, axis=0)
+            axs[i, j+4].imshow(org_img)
+            head_raw_cpy = np.repeat(heads_raw[index], 16, axis=0)
             head_raw_cpy = np.repeat(head_raw_cpy, 16, axis=1)
-            axs[i, j+15].imshow(head_raw_cpy, cmap='jet', alpha=0.5)
-            axs[i, j+15].axis('off')
+            axs[i, j+4].imshow(head_raw_cpy, cmap='jet', alpha=0.5)
+            axs[i, j+4].axis('off')
+            index += 1
 
     print(count)
     target_val = target.item()
