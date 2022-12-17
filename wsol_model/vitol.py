@@ -27,8 +27,8 @@ def generate_cam(attribution_generator, img, class_index, eval_method="lrp"):
         if eval_method == 'lrp':
             transformer_attribution = attribution_generator.generate_LRP(img[i].unsqueeze(0).to(device), method="transformer_attribution",index=class_index[i]).detach()
         elif eval_method == 'grad_rollout':
-            transformer_attribution, all_head, layerwise = attribution_generator.generate_grad_rollout(img[i].unsqueeze(0).to(device), index=class_index[i])
-            return transformer_attribution, all_head, layerwise
+            transformer_attribution, headwise, headwise_graded, layerwise, prop_lw = attribution_generator.generate_grad_rollout(img[i].unsqueeze(0).to(device), index=class_index[i])
+            return transformer_attribution, headwise, headwise_graded, layerwise, prop_lw
         elif eval_method == 'rollout':
             transformer_attribution = attribution_generator.generate_rollout(img[i].unsqueeze(0).to(device)).detach()
 

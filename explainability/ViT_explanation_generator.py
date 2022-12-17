@@ -13,10 +13,13 @@ def compute_rollout_attention(all_layer_matrices, start_layer=0):
     matrices_aug = [all_layer_matrices[i] / all_layer_matrices[i].sum(dim=-1, keepdim=True)
                           for i in range(len(all_layer_matrices))]
     joint_attention = matrices_aug[start_layer]
+    propagated_layerwise_attention = []
     for i in range(start_layer+1, len(matrices_aug)):
         joint_attention = matrices_aug[i].bmm(joint_attention)
+        propagated_layerwise_attention.append(joint_attention)
+
     #print(joint_attention.shape)
-    return joint_attention
+    return joint_attention, propagated_layerwise_attention
 
 class LRP:
     def __init__(self, model):
@@ -102,6 +105,7 @@ class Baselines:
 
         blocks = self.model.blocks
         all_layer_attentions = []
+        all_head_grad_attentions = []
         all_head_attentions = []
 
         # cams, grads = [], []
@@ -115,9 +119,12 @@ class Baselines:
             # cams.append(cam)
             # grads.append(grad)
 
+            # log, cam = all_head_attentions
+            all_head_attentions.append(cam.detach())
+
             cam = grad * cam
             cam2 = cam
-            all_head_attentions.append(cam2.detach())
+            all_head_grad_attentions.append(cam2.detach()) # change to all_head_grad_attentions
             cam = cam.clamp(min=0).mean(dim=0)
             all_layer_attentions.append(cam.unsqueeze(0))
 
@@ -125,7 +132,7 @@ class Baselines:
         # print(len(all_head_attentions))        
         # print(all_layer_attentions[0].shape)
         # print(all_head_attentions[0].shape)
-        rollout = compute_rollout_attention(all_layer_attentions, start_layer=start_layer)  
+        rollout, prop_lw_attn = compute_rollout_attention(all_layer_attentions, start_layer=start_layer)  
         # all_layer_rolled = []
         # for i in (0, 12):
         #     rolled = compute_rollout_attention(all_layer_attentions, start_layer=i)
@@ -133,4 +140,4 @@ class Baselines:
 
         # torch.save({'cams': cams, 'grads':grads, 'attention_maps': all_layer_attentions, 'final_map': rollout}, 'grad_rollout_maps.pt')
         # import pdb; pdb.set_trace()
-        return rollout[:,0, 1:], all_head_attentions, all_layer_attentions
+        return rollout[:,0, 1:], all_head_attentions, all_head_grad_attentions, all_layer_attentions, prop_lw_attn
