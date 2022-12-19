@@ -64,12 +64,13 @@ test=transforms.Compose([
 test_loader = loaders['test']
 log_folder = './comprehensive/'
 for count, (images, labels, _) in enumerate(test_loader):
+    index = 0
     image = images.cuda()
     target = labels.cuda()
     attribution_generator = Baselines(model)
     cam, headwise, headwise_graded, layerwise, prop_lw = generate_cam(attribution_generator ,image, target, 'grad_rollout') 
     prop_lw.insert(0, torch.zeros(1, 197, 197))
-    print(cam.shape, headwise[0].shape, headwise_graded[0].shape, layerwise[0].shape, prop_lw[0].shape, len(prop_lw))
+    #print(cam.shape, headwise[0].shape, headwise_graded[0].shape, layerwise[0].shape, prop_lw[0].shape, len(prop_lw))
     cam = cam.squeeze(0).detach().cpu().numpy()
     layers = []
     layers_prop = []
@@ -94,7 +95,12 @@ for count, (images, labels, _) in enumerate(test_loader):
         layers_prop.append(prop_lw_final)
         head_cam = headwise_graded[layerNo]
         head_raw = headwise[layerNo]
-
+        # check if head_cam[0] is the same as head_cam[1]
+        #print(headwise_graded[layerNo].shape)
+        #head_cam_0 = headwise_graded[0][0,0, 1:]
+        #head_cam_1 = headwise_graded[1][0,0, 1:]
+        #print(torch.equal(head_cam_0, head_cam_1))
+        #exit() 
         for headNo in range(12):
             heads_single = head_cam[headNo, 0, 1:]
             heads_raw_single = head_raw[headNo, 0, 1:]
@@ -119,10 +125,7 @@ for count, (images, labels, _) in enumerate(test_loader):
     org_img = np.clip(org_img, 0, 1)
     org_img = org_img * 255
     org_img = org_img.astype(np.uint8)
-    #org_img = cv2.cvtColor(org_img, cv2.COLOR_BGR2RGB)
     org_img = cv2.resize(org_img, (224, 224))
-    # color appear inverted make them 
-        
     #org_img = org_img.resize((224, 224))
 
     fig, axs = plt.subplots(12, 27, figsize=(27, 12))
@@ -160,8 +163,10 @@ for count, (images, labels, _) in enumerate(test_loader):
         layer_prop_cpy = np.repeat(layer_prop_cpy, 16, axis=1)
         axs[i, 2].imshow(layer_prop_cpy, cmap='jet', alpha=0.5)
         axs[i, 2].axis('off')
-        index = 0
+        #print(len(heads))    
+        #exit()    
         for j in range(0, 24, 2):
+            #print(index)
             axs[i, j+3].imshow(org_img)
             head_cpy = np.repeat(heads[index], 16, axis=0)
             head_cpy = np.repeat(head_cpy, 16, axis=1)
@@ -174,9 +179,10 @@ for count, (images, labels, _) in enumerate(test_loader):
             axs[i, j+4].axis('off')
             index += 1
 
-    print(count)
+    #print(count)
     target_val = target.item()
-    fig.savefig(os.path.join(log_folder, 'vis_'+str(count)+'_'+str(target_val)+'.png'), dpi=1200, bbox_inches="tight")
+    fig.savefig(os.path.join(log_folder, 'vis_'+str(count)+'_'+str(target_val)+'.png'), dpi=1000, bbox_inches="tight")
     print('Time taken: ', time.time() - start_time)
     print('headwise cam saved at {}'.format(os.path.join(log_folder, 'vis_'+str(count)+'_'+str(target_val)+'.png')))
     plt.close()
+    #exit()

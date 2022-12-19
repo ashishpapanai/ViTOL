@@ -153,7 +153,7 @@ for i in range(0, 24, 2):
     axs[0, i+3].set_title('Head {}'.format(i), fontsize=2)
     axs[0, i+4].set_title('Head_Raw {}'.format(i), fontsize=1.5)
     
-
+index = 0
 for i in range(12):
     axs[i, 0].imshow(org_img)
     axs[i, 0].axis('off')
@@ -181,7 +181,7 @@ for i in range(12):
     #     axs[i, j+15].imshow(head_raw_cpy, cmap='jet', alpha=0.5)
     #     axs[i, j+15].axis('off')
     # show heads and corresponding heads_raw alternatively
-    index = 0
+
     for j in range(0, 24, 2):
         axs[i, j+3].imshow(org_img)
         head_cpy = np.repeat(heads[index], 16, axis=0)
