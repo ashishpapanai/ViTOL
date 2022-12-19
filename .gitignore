@@ -1,3 +1,10 @@
 train_log/
 *.pyc 
-
+datas/*
+dataset/*
+metadata/*
+pretrained_weights/*
+visualisations/*
+outputs/*
+visuals/*
+comprehensive/*
