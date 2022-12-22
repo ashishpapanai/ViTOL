@@ -201,7 +201,10 @@ for i in range(12):
 fig.savefig(os.path.join(log_folder, 'headwise_cam_mod.png'), dpi=1200, bbox_inches="tight")
 print('Time taken: ', time.time() - start_time)
 print('headwise cam saved at {}'.format(os.path.join(log_folder, 'headwise_cam_mod.png')))
+
 plt.close()
+
+
 
 
 
